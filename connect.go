@@ -31,32 +31,34 @@ func getAuthStr() []byte {
 	return authStr
 }
 
-func doAuth(conn *websocket.Conn) {
+func doAuth(connection *websocket.Conn) {
 	// if authStr {
 	authStr := getAuthStr()
 	// }
-	err := conn.WriteMessage(websocket.TextMessage, authStr)
+	err := connection.WriteMessage(websocket.TextMessage, authStr)
 	if err != nil {
 		log.Fatal("Auth string could not be sent:", err)
 	}
 	log.Println("Authenticated")
 }
 
-func connect() *websocket.Conn {
+func connect() (connection *websocket.Conn) {
 	u := url.URL{Scheme: "wss", Host: *addr, Path: endpoint}
-	log.Printf("connecting to %s", u.String())
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	log.Printf("Connecting to %s", u.String())
+	connection, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	// connection, _, err := websocket.DefaultDialer.Dial
 	if err != nil {
 		log.Fatal("dial:", err)
 	}
-	defer conn.Close()
-	doAuth(conn)
-	market.getMarket(conn)
-	return conn
+	// defer conn.Close()
+	doAuth(connection)
+	getMarket(connection)
+	return
 }
 
-func (market *marketStruct) getMarket(conn *websocket.Conn) {
-	err := conn.ReadJSON(&market)
+func getMarket(connection *websocket.Conn) {
+	// err := websocket.JSON.Receive(connection, market)
+	err := connection.ReadJSON(&market)
 	if err != nil {
 		log.Fatal("Could not read market:", err)
 	}
@@ -70,4 +72,5 @@ func (market *marketStruct) getMarket(conn *websocket.Conn) {
 	for _, bid := range market.Bids {
 		market.BidsM[bid.ID] = bid
 	}
+	return
 }
